@@ -2,7 +2,7 @@ import random
 import threading
 import time
 
-from sound_functions import whitenoise_generator
+from sound_functions import white_noise
 from village.custom_classes.task_base import TaskBase
 from village.devices.optogrid import OptoGrid
 from village.devices.sound_device import sound_device
@@ -10,7 +10,7 @@ from village.scripts.time_utils import time_utils
 
 
 
-class RaspberryOptogridDemo(TaskBase):
+class SoundLocalization(TaskBase):
     """No controller involved (BEHAVIOR_CONTROLLER = OTHER): each trial
     generates a fresh random sound (see create_trial) and then just waits on
     a GUI button.
@@ -29,16 +29,16 @@ class RaspberryOptogridDemo(TaskBase):
         super().__init__()
 
         self.info = """
-        Raspberry + OptoGrid Demo
+        Sound Localization
         ----------------------------------------------------------------
         No Bpod. Connects the OptoGrid and starts IMU logging for the whole
         session.
 
-        Each trial generates a 1s whitenoise burst on only the left or only
-        the right speaker (picked at random), at a random volume between 0
-        and 1 times the speaker's 70dB-calibrated gain. It then waits for a
-        GUI button click (function50) to play it -- gated on OptoGrid
-        battery level -- then waits 2 more seconds before moving on to the
+        Each trial generates a Xs whitenoise burst on only the left or only
+        the right speaker (picked at random), at a defined random volume
+        It then waits for a
+        GUI button click (function1) to play it -- gated on OptoGrid
+        battery level -- then waits X more seconds before moving on to the
         next trial.
         """
 
@@ -80,7 +80,7 @@ class RaspberryOptogridDemo(TaskBase):
         gain = self.calibrations.sound_calibration.get_sound_gain(
             speaker=speaker, dB=self.intensity, sound_name="whitenoise"
         )
-        sound = whitenoise_generator(duration=1, gain=gain)
+        sound = white_noise(duration=self.settings.sound_duration, gain=gain)
         if self.side == "left":
             sound_device.load(left=sound, right=None)
         else:
@@ -95,7 +95,7 @@ class RaspberryOptogridDemo(TaskBase):
             self.sound_played_event.wait(timeout=0.05)
 
         if self.sound_played_event.is_set():
-            deadline = time_utils.now_timestamp() + 2
+            deadline = time_utils.now_timestamp() + self.settings.time_to_wait_after_sound
             while not self.should_stop and time_utils.now_timestamp() < deadline:
                 time.sleep(0.05)
 
@@ -104,6 +104,7 @@ class RaspberryOptogridDemo(TaskBase):
     def after_trial(self):
         self.register_value("sound_side", self.side)
         self.register_value("intensity", self.intensity)
+        self.register_value("sound_duration", self.settings.sound_duration)
         self.register_value("water", 0)
 
     def close(self):
