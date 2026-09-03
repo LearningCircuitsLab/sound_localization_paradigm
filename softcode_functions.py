@@ -15,6 +15,7 @@ class DirectFunctions(DirectFunctionsBase):
         # Battery range is roughly 3500 (empty) to 4200 mV (full) -- keep
         # going only above 3900 mV.
         if battery_mv is not None and battery_mv > 3900:
+            print(f":) enough battery: {battery_mv} mV")
             # 1. Register the click as a Raspberry-side event.
             self.task.register_raspberry_event(
                 "button_click", time_utils.now_timestamp()
@@ -26,4 +27,4 @@ class DirectFunctions(DirectFunctionsBase):
             # Let create_trial's waiting loop know the sound was played.
             self.task.sound_played_event.set()
         else:
-            print("not enough battery")
+            print(f"NOT enough battery: {battery_mv} mV")
