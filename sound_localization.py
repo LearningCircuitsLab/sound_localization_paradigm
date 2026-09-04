@@ -97,10 +97,13 @@ class SoundLocalization(TaskBase):
             self.sound_played_event.wait(timeout=0.05)
 
         if self.sound_played_event.is_set():
+            # write it in the camera
+            self.cam_box.write_text(f"Sound played: side={self.side}, intensity={self.intensity}")
             deadline = time_utils.now_timestamp() + self.settings.time_to_wait_after_sound
             while not self.should_stop and time_utils.now_timestamp() < deadline:
                 time.sleep(0.05)
-
+        # delete camera text
+        self.cam_box.write_text("")
         self.register_end_trial(time_utils.now_timestamp())
 
     def after_trial(self):
