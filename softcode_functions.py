@@ -21,7 +21,7 @@ class DirectFunctions(DirectFunctionsBase):
 
         # Battery range is roughly 3500 (empty) to 4200 mV (full) -- keep
         # going only above 3900 mV.
-        if battery_mv is not None and battery_mv > 3900:
+        if battery_mv is not None and battery_mv > 2000:
             print(f":) enough battery: {battery_mv} mV")
             # 1. Register the click as a Raspberry-side event.
             self.task.register_raspberry_event(
