@@ -51,7 +51,9 @@ class SoundLocalization(TaskBase):
         # device_name defaults to "OptoGrid 1" -- change it here if yours is
         # named differently.
         self.og = OptoGrid(
-            sessions_directory=self.sessions_directory, filename=self.filename
+			device_name=self.settings.device_name,
+            sessions_directory=self.sessions_directory, 
+            filename=self.filename
         )
         if self.og.connect():
             self.og.start_imu_logging()
@@ -78,7 +80,7 @@ class SoundLocalization(TaskBase):
         self.intensity = random.choice([40, 50, 60, 70])
         speaker = 0 if self.side == "left" else 1
         gain = self.calibrations.sound_calibration.get_sound_gain(
-            speaker=speaker, dB=self.intensity, sound_name="whitenoise"
+            speaker=speaker, dB=self.intensity, sound_name="white_noise"
         )
         sound = white_noise(duration=self.settings.sound_duration, gain=gain)
         if self.side == "left":

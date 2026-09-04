@@ -54,6 +54,8 @@ class TrainingProtocol(TrainingProtocolBase):
 
         # time to wait after sound is played before starting a new trial
         self.settings.time_to_wait_after_sound = 2  # seconds
+        
+        self.settings.device_name = "AAA"
 
 
     def update_training_settings(self) -> None:
