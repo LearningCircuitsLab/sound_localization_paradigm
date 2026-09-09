@@ -2,7 +2,7 @@ import random
 import threading
 import time
 
-from sound_functions import white_noise
+from sound_functions import white_noise_with_gain_ramp
 from village.custom_classes.task_base import TaskBase
 from village.devices.optogrid import OptoGrid
 from village.devices.sound_device import sound_device
@@ -76,13 +76,14 @@ class SoundLocalization(TaskBase):
         """
 
         self.side = random.choice(["left", "right"])
-        # select a random intensity from 40, 50, 60 or 70 dB
-        self.intensity = random.choice([40, 50, 60, 70])
         speaker = 0 if self.side == "left" else 1
-        gain = self.calibrations.sound_calibration.get_sound_gain(
-            speaker=speaker, dB=self.intensity, sound_name="white_noise"
+        initial_gain = self.calibrations.sound_calibration.get_sound_gain(
+            speaker=speaker, dB=self.settings.starting_intensity, sound_name="white_noise"
         )
-        sound = white_noise(duration=self.settings.sound_duration, gain=gain)
+        ending_gain = self.calibrations.sound_calibration.get_sound_gain(
+            speaker=speaker, dB=self.settings.peak_intensity, sound_name="white_noise"
+        )
+        sound = white_noise_with_gain_ramp(duration=self.settings.sound_duration, initial_gain=initial_gain, ending_gain=ending_gain)
         if self.side == "left":
             sound_device.load(left=sound, right=None)
         else:
@@ -98,7 +99,7 @@ class SoundLocalization(TaskBase):
 
         if self.sound_played_event.is_set():
             # write it in the camera
-            self.cam_box.write_text(f"Sound played: side={self.side}, intensity={self.intensity}")
+            self.cam_box.write_text(f"Sound played: side={self.side}, initial_intensity={self.settings.starting_intensity}, peak_intensity={self.settings.peak_intensity}")
             deadline = time_utils.now_timestamp() + self.settings.time_to_wait_after_sound
             while not self.should_stop and time_utils.now_timestamp() < deadline:
                 time.sleep(0.05)
@@ -108,7 +109,8 @@ class SoundLocalization(TaskBase):
 
     def after_trial(self):
         self.register_value("sound_side", self.side)
-        self.register_value("intensity", self.intensity)
+        self.register_value("initial_intensity", self.settings.starting_intensity)
+        self.register_value("peak_intensity", self.settings.peak_intensity)
         self.register_value("sound_duration", self.settings.sound_duration)
         self.register_value("water", 0)
 

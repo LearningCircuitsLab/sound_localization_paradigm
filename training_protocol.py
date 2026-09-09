@@ -51,6 +51,8 @@ class TrainingProtocol(TrainingProtocolBase):
 
         # sound parameters
         self.settings.sound_duration = 0.05 #50ms
+        self.settings.starting_intensity = 40 #starting intensity of the sound in dB
+        self.settings.peak_intensity = 70 #peak intensity of the sound in dB
 
         # time to wait after sound is played before starting a new trial
         self.settings.time_to_wait_after_sound = 2  # seconds
