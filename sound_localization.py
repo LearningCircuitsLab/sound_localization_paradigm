@@ -57,6 +57,7 @@ class SoundLocalization(TaskBase):
         )
         if self.og.connect():
             self.og.start_imu_logging()
+            self.og.toggle_sham_led(False)
         else:
             print("Warning: could not connect to the OptoGrid")
 
@@ -94,12 +95,20 @@ class SoundLocalization(TaskBase):
         t0 = time_utils.now_timestamp()
         self.register_start_trial(raspberry_timestamp=t0, controller_timestamp=t0)
 
+        counter = 0
         while not self.should_stop and not self.sound_played_event.is_set():
             self.sound_played_event.wait(timeout=0.05)
+            counter+=1
+            # print the battery level in the camera box
+            if counter % 5 == 0:
+                battery_mv = None
+                if self.og.is_connected:
+                    battery_mv = self.og.read_battery_mv()
+                self.cam_box.write_text(f"Battery: {battery_mv} mV")
 
         if self.sound_played_event.is_set():
             # write it in the camera
-            self.cam_box.write_text(f"Sound played: side={self.side}, initial_intensity={self.settings.starting_intensity}, peak_intensity={self.settings.peak_intensity}")
+            self.cam_box.write_text(f"Sound played: side={self.side}")
             deadline = time_utils.now_timestamp() + self.settings.time_to_wait_after_sound
             while not self.should_stop and time_utils.now_timestamp() < deadline:
                 time.sleep(0.05)
